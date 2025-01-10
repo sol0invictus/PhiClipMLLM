@@ -17,28 +17,28 @@ phase_two:
   directory: C:\Users\sunny\Desktop\mllm\datasets\phase_two
 
 training_args:
-  num_train_epochs: 5
+  num_train_epochs: 2
   learning_rate: 0.001
-  batch_size: 8
+  batch_size: 4
   save_steps: 5000
 
 peft_text:
-  r: 64
-  lora_alpha: 64
+  r: 12
+  lora_alpha: 2
   target_modules: ["qkv_proj", "o_proj"]
   lora_dropout: 0.1
   bias: none
 
 peft_vision:
-  r: 64
-  lora_alpha: 64
+  r: 12
+  lora_alpha: 2
   target_modules: ["q_proj", "v_proj", "o_proj"]
   lora_dropout: 0.1
   bias: none
 
 peft_adapter:
-  r: 128
-  lora_alpha: 128
+  r: 12
+  lora_alpha: 2
   target_modules: ["0", "2"]
   lora_dropout: 0.1
   bias: none

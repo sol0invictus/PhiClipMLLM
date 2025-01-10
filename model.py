@@ -174,7 +174,7 @@ class PhiClipMLLM(nn.Module):
     def setup_lora(self, lora_config : List[LoraConfig]):
         self.text_model = get_peft_model(self.text_model, lora_config[0])
         self.vision_model = get_peft_model(self.vision_model, lora_config[1])
-        self.vision_adapter = get_peft_model(self.vision_adapter, lora_config[2])
+        # self.vision_adapter = get_peft_model(self.vision_adapter, lora_config[2])
         # Freeze everything except the adapter
         self.prime_model(stage="two")
 
@@ -199,7 +199,7 @@ class PhiClipMLLM(nn.Module):
             for param in self.text_model.parameters():
                 param.requires_grad = False
             for param in self.vision_adapter.parameters():
-                param.requires_grad = False
+                param.requires_grad = True
             
             # Unfreeze LoRA layers
             for name, param in self.vision_model.named_parameters():
@@ -446,7 +446,7 @@ class PhiClipMLLM(nn.Module):
         merged_text_state = self.text_model.state_dict()
         
         # Merge vision adapter weights
-        self.vision_adapter.merge_and_unload()
+        # self.vision_adapter.merge_and_unload()
         merged_adapter_state = self.vision_adapter.state_dict()
         
         return merged_vision_state, merged_text_state, merged_adapter_state
@@ -471,7 +471,7 @@ class PhiClipMLLM(nn.Module):
 
         # Load checkpoint
         checkpoint = torch.load(checkpoint_file, map_location="cuda")
-        
+        print("Checkpoint loaded")
         # Create empty model instance
         model = cls.__new__(cls)
         nn.Module.__init__(model)
@@ -492,7 +492,7 @@ class PhiClipMLLM(nn.Module):
         model.vision_model = CLIPVisionModel(config=checkpoint["vision_config"])
         model.vision_model.load_state_dict(checkpoint["vision_model_state"])
         model.vision_model.to(device=device, dtype=dtype)
-        
+        print("Vision model loaded")
         # Load vision processor
         model.vision_processor = AutoProcessor.from_pretrained(checkpoint["vision_processor_name"])
         
@@ -500,7 +500,7 @@ class PhiClipMLLM(nn.Module):
         model.text_model = AutoModelForCausalLM.from_config(checkpoint["text_model_config"])
         model.text_model.load_state_dict(checkpoint["text_model_state"])
         model.text_model.to(device=device, dtype=dtype)
-        
+        print("Text model loaded")
         # Load tokenizer
         model.tokenizer = AutoTokenizer.from_pretrained(checkpoint_path.parent)
         
@@ -512,6 +512,7 @@ class PhiClipMLLM(nn.Module):
         model.vision_adapter = MultimodalProjector(**adapter_config)
         model.vision_adapter.load_state_dict(checkpoint["vision_adapter_state"])
         model.vision_adapter.to(device=device, dtype=dtype)
+        print("Vision adapter loaded")  
         del(checkpoint)
         return model
 

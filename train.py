@@ -37,6 +37,7 @@ def perform_training(args, cfg, peft_config):
         print("Starting Phase Two training ------ ")
         mllm = PhiClipMLLM.from_pretrained(checkpoint_path = cfg['checkpoint']['load_dir'], 
                                            dtype=torch.bfloat16 if cfg['dtype'] == 'torch.bfloat16' else torch.float32)
+        print("what is happening")
         # mllm = PhiClipMLLM(
         #     language_model=cfg['model']['text_model'],
         #     vision_model=cfg['model']['vision_model'],
@@ -60,7 +61,6 @@ def perform_training(args, cfg, peft_config):
         logging_steps=cfg['training_args'].get('logging_steps', 10),  # Default to 10 if not provided
         bf16=True if cfg['dtype'] == 'torch.bfloat16' else False,
         max_grad_norm=1.0,
-        # fp16_backend="auto",  # Add this
     )
     optimizer = AdamW(mllm.parameters(), lr=cfg['training_args']['learning_rate'], weight_decay=0.001)
     # Trainer
