@@ -129,9 +129,5 @@ def main():
     )
 
 
-if True:
-
-    print("asddasd")
-
 if __name__ == "__main__":
     main()

@@ -13,8 +13,6 @@ phase_one:
   annotation_file: C:/coco/labels/annotations/captions_train2017.json
   image_directory: C:/coco/train2017
 
-phase_two:
-  directory: C:\Users\sunny\Desktop\mllm\datasets\phase_two
 
 training_args:
   num_train_epochs: 1
@@ -33,12 +31,5 @@ peft_vision:
   r: 64
   lora_alpha: 64
   target_modules: ["q_proj", "v_proj", "o_proj"]
-  lora_dropout: 0.1
-  bias: none
-
-peft_adapter:
-  r: 12
-  lora_alpha: 2
-  target_modules: ["0", "2"]
   lora_dropout: 0.1
   bias: none

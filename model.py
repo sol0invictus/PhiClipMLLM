@@ -130,7 +130,6 @@ class PhiClipMLLM(nn.Module):
     def setup_lora(self, lora_config: List[LoraConfig]):
         self.text_model = get_peft_model(self.text_model, lora_config[0])
         self.vision_model = get_peft_model(self.vision_model, lora_config[1])
-        # self.vision_adapter = get_peft_model(self.vision_adapter, lora_config[2])
         # Freeze everything except the adapter
         self.prime_model(stage="two")
 
@@ -160,9 +159,6 @@ class PhiClipMLLM(nn.Module):
                 if "lora" in name:
                     param.requires_grad = True
             for name, param in self.text_model.named_parameters():
-                if "lora" in name:
-                    param.requires_grad = True
-            for name, param in self.vision_adapter.named_parameters():
                 if "lora" in name:
                     param.requires_grad = True
 
