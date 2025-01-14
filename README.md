@@ -1,44 +1,70 @@
 # PhiClipMLLM
 
-PhiClipMLLM is a multimodal language model that integrates text and vision models to generate text based on input text and optional images. This project uses LoRA (Low-Rank Adaptation) for efficient fine-tuning.
+PhiClipMLLM is a project that demonstrates building a simple MultiModal LLM from scratch, focusing on image and text processing. Following the design patterns of LLAVA and MinGPT4, this implementation leverages Huggingface's transformer ecosystem while providing clear visibility into the core MLLM architecture.
 
-## Table of Contents
+The project combines lightweight vision and language models to showcase efficient multimodal learning with minimal resources. It uses Microsoft's Phi-3-mini-4k-instruct for text processing and OpenAI's CLIP-ViT-Large-Patch14 for vision tasks. Through LoRA (Low-Rank Adaptation), the model enables fine-tuning with modest computational requirements, making it accessible to researchers and developers with limited hardware.
 
-- [Installation](#installation)
-- [Usage](#usage)
-- [Configuration](#configuration)
-- [Training](#training)
-- [Generating Text](#generating-text)
-- [Contributing](#contributing)
-- [License](#license)
+*Note: This project is intended as a demonstration of training concepts. The training parameters are not optimized for maximum performance.*
 
 ## Installation
 
 1. Clone the repository:
-    ```bash
-    git clone https://github.com/yourusername/PhiClipMLLM.git
-    cd PhiClipMLLM
-    ```
+```bash
+git clone https://github.com/sol0invictus/PhiClipMLLM
+cd PhiClipMLLM
+```
 
 2. Install the required dependencies:
-    ```bash
-    pip install -r requirements.txt
-    ```
+```bash
+pip install -r requirements.txt
+```
 
-## Usage
+## Dataset
 
-### Configuration
+This project uses the COCO 2017 dataset, a standard benchmark in computer vision tasks. You'll need to download two components:
 
-The configuration files are located in the [training_configs](http://_vscodecontentref_/1) directory. There are two main configuration files:
+1. Training images: [COCO 2017 Train Images](http://images.cocodataset.org/zips/train2017.zip)
+2. Annotations: [COCO 2017 Stuff Annotations](http://images.cocodataset.org/annotations/stuff_annotations_trainval2017.zip)
 
-- [phi_clip.yaml](http://_vscodecontentref_/2): Configuration for the first phase of training.
-- [phi_clip_p2.yaml](http://_vscodecontentref_/3): Configuration for the second phase of training.
+Download both files and store them in an appropriate directory. The project's dataloader is configured for the COCO 2017 dataset structure and annotation format.
 
-### Training
+## Configuration
 
-To start training, use the [train.py](http://_vscodecontentref_/4) script with the appropriate configuration file.
+Configuration files are stored in the `training_configs` directory and include:
 
-#### Phase One Training
+* `phi_clip.yaml`: First phase training configuration
+* `phi_clip_p2.yaml`: Second phase training configuration
+
+While both configurations use the same dataset, they maintain separate files due to different optimizer settings.
+
+## Training
+
+The training process consists of two phases, managed by the `train.py` script:
+
+### Phase One Training
 
 ```bash
 python train.py --phase_one --config training_configs/phi_clip.yaml
+```
+
+During this phase, both vision and language backbones remain frozen while only the adapter undergoes training.
+
+### Phase Two Training
+
+```bash
+python train.py --config training_configs/phi_clip_p2.yaml
+```
+
+Phase two involves fine-tuning the entire architecture. LoRA training is applied to vision and language backbones to reduce computational overhead.
+
+## Text Generation
+
+Use the `generate` method from the `model.py` package to generate text:
+
+```python
+from model import PhiClipMLLM
+mllm = PhiClipMLLM.from_pretrained(r"model_checkpoint.pt", dtype=torch.bfloat16)
+text = generate(a, ["Describe this image <|placeholder1|> "], images=[r"PXL_20241113_020744498.jpg"])
+```
+
+Use `<|placeholder1|>` as the image placeholder token in your prompts.

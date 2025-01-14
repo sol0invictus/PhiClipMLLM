@@ -520,12 +520,12 @@ def generate(
     model: PhiClipMLLM,
     input_text: str,
     images: List[str] = None,
-    max_length: int = 512,
-    temperature: float = 0.7,
+    max_length: int = 300,
+    temperature: float = 0.0,
     top_p: float = 0.9,
     top_k: int = 50,
     num_return_sequences: int = 1,
-    do_sample: bool = True,
+    do_sample: bool = False,
 ) -> List[str]:
     """
     Generate text using the MLLM model given input text and optional images.
@@ -553,17 +553,31 @@ def generate(
 
             input_images = [Image.open(img_path) for img_path in images]
 
-        # Get initial embeddings
+        # Generate text and image embeddings
         text_embeddings, img_token_mask, attention_mask = model.encode_text(input_text)
+        image_embeddings = model.encode_image(input_images)
 
-        if input_images is not None:
-            image_embeddings = model.encode_image(input_images)
-            adapted_image_embeddings = model.vision_adapter(image_embeddings)
-            combined_embedding = model.combine_text_image(
-                text_embeddings, adapted_image_embeddings, img_token_mask
+        adapted_image_embeddings = model.vision_adapter(image_embeddings)
+        # Combine embeddings by replacing the [placeholder] token with image embeddings
+        combined_embedding = model.combine_text_image(
+            text_embeddings, adapted_image_embeddings, img_token_mask
+        )
+        # Add position embedding back
+        expanded_attention_masks = []
+
+        for batch_idx, mask in enumerate(img_token_mask):
+            img_position = mask.nonzero(as_tuple=True)[0][0]
+            prefix_mask = attention_mask[batch_idx, :img_position]
+            suffix_mask = attention_mask[batch_idx, (img_position + 1) :]
+            image_mask = torch.ones(
+                adapted_image_embeddings.size(1), device=attention_mask.device
             )
-        else:
-            combined_embedding = text_embeddings
+            expanded_mask = torch.cat([prefix_mask, image_mask, suffix_mask], dim=0)
+            expanded_attention_masks.append(expanded_mask)
+        expanded_attention_mask = torch.stack(expanded_attention_masks)
+
+        position_ids = model.create_position_ids(expanded_attention_mask)
+        # Compute logits
 
         # Set up generation parameters
         gen_config = {
@@ -580,7 +594,9 @@ def generate(
         # Generate
         outputs = model.text_model.generate(
             inputs_embeds=combined_embedding,
-            attention_mask=attention_mask,
+            attention_mask=expanded_attention_mask,
+            position_ids=position_ids,
+            repetition_penalty=1.2,
             **gen_config,
         )
 
