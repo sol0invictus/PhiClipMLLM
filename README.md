@@ -4,6 +4,8 @@ PhiClipMLLM is a project that demonstrates building a simple MultiModal LLM from
 
 The project combines lightweight vision and language models to showcase efficient multimodal learning with minimal resources. It uses Microsoft's Phi-3-mini-4k-instruct for text processing and OpenAI's CLIP-ViT-Large-Patch14 for vision tasks. Through LoRA (Low-Rank Adaptation), the model enables fine-tuning with modest computational requirements, making it accessible to researchers and developers with limited hardware.
 
+I have only tested it on 3090Ti.
+
 *Note: This project is intended as a demonstration of training concepts. The training parameters are not optimized for maximum performance.*
 
 ## Installation
